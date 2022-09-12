@@ -37,21 +37,23 @@ def _read_json_credentials(json_path):
         credentials_list = []
         for i in credentials["credentials"]:
             credentials_list.append(i)
+            
     ssh_credentials = credentials_list[0]['ssh_credentials']
-
     database_credentials = credentials_list[1]['database_credentials']
+    
     return database_credentials
 
 
 # ssh key kullan
+
 
 def _connect_server(db_credentials):
     #server = SSHTunnelForwarder((ssh_data['ipaddress'], int(ssh_data['SSH port'])),
     #                            ssh_username=ssh_data["User_name"],
     #                            ssh_password=ssh_data["password"],
     #                            remote_bind_address=('localhost', db_credentials['port']))
-    
-    engine = create_engine(
+    #server.start()
+    engine =  create_engine(
         f'postgresql://{db_credentials["database_user"]}:{db_credentials["database_password"]}@{"localhost"}:{5432}/{db_credentials["database_name"]}'
     )
     return engine
