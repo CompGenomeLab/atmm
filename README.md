@@ -27,9 +27,9 @@ cat LIST-S2_Human_UniParc_2019_10_part3 >> LIST-S2_Human_UniParc_2019_10.tsv.gz
 cat LIST-S2_Human_UniParc_2019_10_part4 >> LIST-S2_Human_UniParc_2019_10.tsv.gz
 ```
 
-Generic threshold: 0.85
-Equal to 0.85 or higher: deleterious
-lower than 0.85: benign
+<p>Generic threshold: 0.85</p>
+<p>Equal to 0.85 or higher: deleterious</p>
+<p>lower than 0.85: benign</p>
 
 
 ### SIFT4g
