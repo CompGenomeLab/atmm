@@ -8,8 +8,8 @@ wget http://147.8.193.83/EFIN/EFIN_0.1.download.csv.tar.gz
 
 Efin threshold values:
 
-for swissprot trained scores 0.6 (equal or higher than 0.6 → damaging, lower than 0.6 → neutral
-for humdiv trained scores 0.28
+<p>for swissprot trained scores 0.6 (equal or higher than 0.6 → neutral, lower than 0.6 → damaging</p>
+<p>for humdiv trained scores 0.28 (equal or higher than 0.28 → damaging, lower than 0.28 → neutral</p>
 
 
 ### List-S2
@@ -33,4 +33,6 @@ cat LIST-S2_Human_UniParc_2019_10_part4 >> LIST-S2_Human_UniParc_2019_10.tsv.gz
 
 
 ### SIFT4g
+
+
 
