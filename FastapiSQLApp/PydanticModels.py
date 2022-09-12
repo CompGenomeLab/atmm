@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 
-
+#This script uses pydantic to validate the data coming from PostgreSQL database.
 
 
 class ScoreTables(BaseModel):
