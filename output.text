@@ -1,7 +1,0 @@
-INFO:     Started server process [901284]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:38738 - "GET /database/all_scores/db19cd1175139db0d6501f9df7068c26 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38742 - "GET /database/all_scores/db19cd1175139db0d6501f9df7068c26 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:38744 - "GET /database/all_scores/db19cd1175139db0d6501f9df7068c26 HTTP/1.1" 200 OK
