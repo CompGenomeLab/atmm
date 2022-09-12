@@ -38,9 +38,6 @@ def get_uniprot_metadata(md5sum):
     return responseBody
 
 
-#async def uniprotid_md5sum_converter(uniprot: str):
-#    db.query(Md5sum.id).join(UniprotMetaData, UniprotMetaData.md5sum == UniprotMetaData.md5sum)
-
 
 
 @app.get("/database/sift/{md5sum}", response_model=ScoreTables, status_code=200, summary="Sift scores of a protein",
@@ -54,9 +51,6 @@ async def get_sift_item(common: dict = Depends(md5sum_parameter)):
     return db.query(Sift).filter(Sift.md5sum == common.get("md5sum")).first()
 
 
-
-
-
 @app.get("/database/efin/{md5sum}", response_model=ScoreTables, status_code=200, summary="Efin scores of a protein",
          description="Enter Md5sum of a protein sequence to get the Efin scores of all possible Efin aminoacid "
                      "variants pathogenicity scores from Sift Database.")
@@ -64,15 +58,11 @@ async def get_efin_item(common: dict = Depends(md5sum_parameter)):
     return db.query(Efin).filter(Efin.md5sum == common.get("md5sum")).first()
 
 
-
-
 @app.get("/database/provean/{md5sum}", response_model=ScoreTables, status_code=200, summary="Efin scores of a protein",
          description="Enter Md5sum of a protein sequence to get the Efin scores of all possible Efin aminoacid "
                      "variants pathogenicity scores from Sift Database.")
 async def get_provean_item(common: dict = Depends(md5sum_parameter)):
     return db.query(Provean).filter(Provean.md5sum == common.get("md5sum")).first()
-
-
 
 
 @app.get("/database/lists2/{md5sum}", response_model=ScoreTables, status_code=200,
@@ -96,8 +86,8 @@ async def md5sum_to_sequence(common: dict = Depends(md5sum_parameter)):
     return db.query(Md5sum).filter(Md5sum.md5sum == common.get("md5sum")).first()
 
 
-@app.get("/database/all_scores/{md5sum}", status_code=200, response_model=AllScores, summary="All scores for a protein",
-         description="")
+@app.get("/database/all_scores/{md5sum}", status_code=200, response_model=AllScores, summary="All scores for an interested protein.",
+         description="This method gets a md5sum code and returns the all scores it has in the database, if there is no score for the protein, then it returns none.")
 async def get_all_scores_for_md5sum(common: dict = Depends(md5sum_parameter)):
     all_scores = {"md5sum": (common.get("md5sum"))}
     dataset_dict = {"Provean": Provean, "Lists2": Lists2, "Sift": Sift, "Efin": Efin}
@@ -109,7 +99,7 @@ async def get_all_scores_for_md5sum(common: dict = Depends(md5sum_parameter)):
     return all_scores
 
 
-@app.get("/database/md5sum", status_code=200)
+@app.get("/database/md5sum", status_code=200, response_model=AllScores, summary="This method gives all common md5sum ids.", description="This methods returns all the common md5sum addresses among the datasets as a list.")
 async def get_common_md5sum():
     md5sum_list = []
     dataset_dict = {"Provean": Provean, "Lists2": Lists2, "Sift": Sift, "Efin": Efin}
@@ -120,18 +110,10 @@ async def get_common_md5sum():
     md5sum_series = pd.DataFrame(data={"md5sum": [i['md5sum'] for i in md5sum_list]})
     md5sum_count = pd.DataFrame(data=md5sum_series["md5sum"].value_counts()).reset_index()
     md5sum_count.columns = ["md5sum", "count"]
-    return md5sum_count.loc[md5sum_count["count"] == 4]["md5sum"].to_list()
+    return md5sum_count.loc[md5sum_count["count"] == len(dataset_dict)]["md5sum"].to_list()
 
-
-# MVC
-# protein datsetlerinde ortak md5sumlar
-# all scores for one proteein
 
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host= "0.0.0.0", port=8000, log_level="info")
-
-# 1 protein verince birden fazla protein databasini ver
-# md5sumdan sequence
-# uniprot idden md5suma
-# md5sum tüm idlere
+#Host Ip address has some problems.
