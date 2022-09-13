@@ -49,6 +49,21 @@ Swissprot and Swissprot/Trembl are used for calculations as a database parameter
 for file in INPUT_FOLDER_PATH; do ./bin/sift4g -q $file -d DATABASE_PATH --outfmt light --out OUTPUT_FOLDER_PATH; done
 
 ```
+The code was executed with these parameters:
+
+gap opening penalty: 10
+
+gap extention penalty: 1
+
+similarity matrix: BLOSUM_62
+
+evalue threshold: 0.0001
+
+alignment algorithm: Smith-Waterman local alignment
+
+median-threshold: 2.75
+
+kmer-length: 5 (length of kmers used for database search)
 
 Since prediction files are separately for protein's fasta folder, each of them merged into a tsv file with ./Data-Parse/Sift4G_Data_Merge.py
 
@@ -107,7 +122,7 @@ subs.input -> input file for all theoric amino acids changes
 
 
 ### References
-<p>Zeng, S., Yang, J., Chung, B.HY. et al. EFIN: predicting the functional impact of nonsynonymous single nucleotide polymorphisms in human genome. BMC Genomics 15, 455 (2014). https://doi.org/10.1186/1471-2164-15-455</p>
+<p>Adzhubei IA, Schmidt S, Peshkin L, Ramensky VE, Gerasimova A, Bork P, Kondrashov AS, Sunyaev SR. Nat Methods 7(4):248-249 (2010).</p>
 <p>Malhis N, Jacobson M, Jones SJM, Gsponer J. LIST-S2: taxonomy based sorting of deleterious missense mutations across species. Nucleic Acids Res. 2020 Jul 2;48(W1):W154-W161. doi: 10.1093/nar/gkaa288. PMID: 32352516; PMCID: PMC7319545.</p>
 <p>Ng PC, Henikoff S. Predicting deleterious amino acid substitutions. Genome Res. 2001 May;11(5):863-74. doi: 10.1101/gr.176601. PMID: 11337480; PMCID: PMC311071.</p>
-<p>Adzhubei IA, Schmidt S, Peshkin L, Ramensky VE, Gerasimova A, Bork P, Kondrashov AS, Sunyaev SR. Nat Methods 7(4):248-249 (2010).</p>
+<p>Zeng, S., Yang, J., Chung, B.HY. et al. EFIN: predicting the functional impact of nonsynonymous single nucleotide polymorphisms in human genome. BMC Genomics 15, 455 (2014). https://doi.org/10.1186/1471-2164-15-455</p>
