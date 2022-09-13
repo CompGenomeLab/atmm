@@ -99,7 +99,7 @@ async def get_all_scores_for_md5sum(common: dict = Depends(md5sum_parameter)):
     return all_scores
 
 
-@app.get("/database/md5sum", status_code=200, response_model=AllScores, summary="This method gives all common md5sum ids.", description="This methods returns all the common md5sum addresses among the datasets as a list.")
+@app.get("/database/md5sum", status_code=200, summary="This method gives all common md5sum ids.", description="This methods returns all the common md5sum addresses among the datasets as a list.")
 async def get_common_md5sum():
     md5sum_list = []
     dataset_dict = {"Provean": Provean, "Lists2": Lists2, "Sift": Sift, "Efin": Efin}
