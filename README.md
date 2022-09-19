@@ -1,5 +1,12 @@
 # atmm
 
+The database is consists of two main tables.
+- Md5sum (unique, primary key) - Sequence
+- Md5sum - Scores in Json format (for each tool)
+
+
+## DATA COLLECTION
+
 ### Efin
 Dataset is downloaded from http://paed.hku.hk/efin/download.html on 10th May 2022
 ```
@@ -40,7 +47,7 @@ Then, since two table are required for the database, the data was modified with 
 
 The source code was downloaded from https://github.com/rvaser/sift4g on 13th August 2022. It is installed as written on github page.
 
-The query sequences downloaded from https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/ (uniref100). Each protein saved separately to the input folder.
+The query sequences downloaded from https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/uniref100.xml.gz (last modified:2022-08-03). Each protein's fasta file was saved separately to the input folder and MD5sum-sequence file was created with ./Data-Parse/Current_uniref100_Parse.py
 
 The database has been downloaded from https://www.uniprot.org/help/downloads (swissprot and trembl) || August 2022. 
 Swissprot and Swissprot/Trembl are used for calculations as a database parameter.
@@ -120,8 +127,61 @@ subs.input -> input file for all theoric amino acids changes
 <p></p>
 <p></p>
 
+## BUILDING THE DATABASE 
 
-### References
+<p>PostgreSQL (psql) was used to create the database.</p>
+
+<p>First you must log in to the psql command-line.</p>
+
+'''
+CREATE DATABASE protein_variants_db;
+\connect protein_variants_db;
+#md5sum - sequence dump
+CREATE TABLE seq_md5sum (
+	md5sum VARCHAR(128) UNIQUE NOT NULL,
+	sequence TEXT NOT NULL,
+	PRIMARY KEY(md5sum)
+);
+CREATE TABLE temp (
+	md5sum VARCHAR(128) NOT NULL,
+	sequence TEXT NOT NULL);
+COPY temp FROM 'MD5SUM-SEQUENCE FILE PATH' USING DELIMITERS E'\t' WITH NULL AS '\null' CSV HEADER;
+
+insert into seq_md5sum SELECT distinct * FROM temp ON CONFLICT (md5sum) DO nothing;
+
+drop table "temp";
+
+#dataset dump
+
+CREATE TABLE {DATASET NAME} (md5sum VARCHAR(128) NOT NULL,
+                            scores JSONb not null,
+                            FOREIGN KEY (md5sum)
+                              REFERENCES seq_md5sum (md5sum));
+                              
+CREATE TABLE templ (
+                                md5sum VARCHAR(128) NOT NULL,
+                                scores JSONb not null;
+                                
+COPY templ FROM SCORE_PATH USING DELIMITERS E'\t' WITH NULL AS '\null' CSV header QUOTE E'\b' ESCAPE '\';    
+insert into {DATASET NAME} select distinct * from templ on conflict (md5sum) do nothing;
+
+drop table templ;
+
+'''
+Also ./SQL-script/Script.py can add tables to the database after it has been created with CREATE DATABASE command.
+'''
+python3 ./SQL-script/Script.py -h
+'''
+
+## FAST-API 
+
+
+## Sample database setup
+
+Inside the ./test_files there are sample files obtained from Efin and List-s2. The sample database can be built according to README file using them. 
+
+
+## References
 <p>Adzhubei IA, Schmidt S, Peshkin L, Ramensky VE, Gerasimova A, Bork P, Kondrashov AS, Sunyaev SR. Nat Methods 7(4):248-249 (2010).</p>
 <p>Malhis N, Jacobson M, Jones SJM, Gsponer J. LIST-S2: taxonomy based sorting of deleterious missense mutations across species. Nucleic Acids Res. 2020 Jul 2;48(W1):W154-W161. doi: 10.1093/nar/gkaa288. PMID: 32352516; PMCID: PMC7319545.</p>
 <p>Ng PC, Henikoff S. Predicting deleterious amino acid substitutions. Genome Res. 2001 May;11(5):863-74. doi: 10.1101/gr.176601. PMID: 11337480; PMCID: PMC311071.</p>
