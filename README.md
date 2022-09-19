@@ -114,6 +114,27 @@ done
 subs.input -> input file for all theoric amino acids changes
 
 ```
+#CREATING INPUT SUBSTITUTION FILE
+aa_list = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+
+with open('ref_proteome.fasta') as n:
+    q = n.read().splitlines()
+
+with open('subs.input', mode='w') as b:
+    for el in q:
+        if el.startswith('>'):
+            p_id = el.split('|')[1]
+            m = 0
+        else:
+            for j in range(len(el)):
+                for k in aa_list:
+                    b.write(p_id + '\t' + f'{m + 1}' + '\t' + el[j] + '\t' + k + '\n')
+                m += 1
+
+```
+
+
+```
 ./run_pph4.sh -d /var/tmp/scratch -s ref_proteome.fasta subs.input > run_pph4.log 2>&1 &
 ```
 
