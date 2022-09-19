@@ -1,6 +1,6 @@
 # atmm
 
-The database is consists of two main tables.
+The database consists of two main tables.
 - Md5sum (unique, primary key) - Sequence
 - Md5sum - Scores in Json format (for each tool)
 
