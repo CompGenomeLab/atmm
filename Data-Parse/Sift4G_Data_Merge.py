@@ -26,9 +26,10 @@ with open('/sift4gDATA_SP_TREMBL.tsv', mode='w') as k:
             score = m.read().splitlines()
         with open(f'./sift4g/input/{f[:-14]}fasta') as s:
             fasta_file = s.read().splitlines()
+        sequence = ''
         for el in fasta_file:
             if not el.startswith('>'):
-                sequence = el
+                sequence += el
 
         json_data = {}
         m = 1
