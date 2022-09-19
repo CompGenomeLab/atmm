@@ -133,7 +133,7 @@ subs.input -> input file for all theoric amino acids changes
 
 <p>First you must log in to the psql command-line.</p>
 
-'''
+```
 CREATE DATABASE protein_variants_db;
 \connect protein_variants_db;
 #md5sum - sequence dump
@@ -167,11 +167,11 @@ insert into {DATASET NAME} select distinct * from templ on conflict (md5sum) do 
 
 drop table templ;
 
-'''
+```
 Also ./SQL-script/Script.py can add tables to the database after it has been created with CREATE DATABASE command.
-'''
+```
 python3 ./SQL-script/Script.py -h
-'''
+```
 
 ## FAST-API 
 
