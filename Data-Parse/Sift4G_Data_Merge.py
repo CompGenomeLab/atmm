@@ -24,7 +24,7 @@ with open('/sift4gDATA_SP_TREMBL.tsv', mode='w') as k:
     for f in files:
         with open(dir_path + f) as m:
             score = m.read().splitlines()
-        with open(f'/home2/ceren/sift4g/input/{f[:-14]}fasta') as s:
+        with open(f'./sift4g/input/{f[:-14]}fasta') as s:
             fasta_file = s.read().splitlines()
         for el in fasta_file:
             if not el.startswith('>'):
