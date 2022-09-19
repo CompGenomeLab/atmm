@@ -1,3 +1,5 @@
+EFIN_DOWNLOAD_PATH = "EFIN.csv"
+
 
 import hashlib
 import json
@@ -29,7 +31,6 @@ def get_sequence(dic) -> str:
     return seq
 
 
-EFIN_PATH = "EFIN.csv"
 
 
 #CREATING SEQUENCE_MD5SUM FILE FOR PRIMARY KEY TABLE
@@ -37,10 +38,10 @@ indicator = ''
 protein_dict = {}
 id_md5 = {}
 
-with open('seq_md5sum.tsv', mode='w') as sm:
+with open('efin_seq_md5sum.tsv', mode='w') as sm:
     sm.write('md5sum\tsequence\n')
 
-    for row in csv_reader(EFIN_PATH):
+    for row in csv_reader(EFIN_DOWNLOAD_PATH):
         x = row.split(',')
         print(x)
         if x[1] == 'NA' or x[2] == 'NA':
