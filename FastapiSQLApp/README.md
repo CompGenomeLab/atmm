@@ -54,4 +54,4 @@ This is an example of a json credentials file, all information are required. Bot
         "database_user": "xxx",
         "database_password": "xxx"
     }}
-    ```
+   ```
