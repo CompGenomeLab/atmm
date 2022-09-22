@@ -194,8 +194,6 @@ Also ./SQL-script/Script.py can add tables to the database after it has been cre
 python3 ./SQL-script/Script.py -h
 ```
 
-## FAST-API 
-
 
 ## Sample database setup
 
