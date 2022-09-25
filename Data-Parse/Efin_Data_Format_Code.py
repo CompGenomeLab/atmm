@@ -1,8 +1,6 @@
-EFIN_DOWNLOAD_PATH = "EFIN.csv"
-
-
 import hashlib
 import json
+import argparse
 
 
 def csv_reader(file_name):
@@ -31,19 +29,25 @@ def get_sequence(dic) -> str:
     return seq
 
 
+parser = argparse.ArgumentParser(description='Format Efin csv file, output gives 3 files namely: seq_md5sum.tsv, EfinSWISSPROT.tsv, EfinHUMDIV.tsv')
+parser.add_argument('--path', '-p', type=str, help='path where the csv file is downloaded', required=True)
+parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created', required=True)
+args = parser.parse_args()
+
+if not args.outputpath.endswith('/'):
+    path = args.outputpath + '/'
+else:
+    path = args.outputpath
 
 
-#CREATING SEQUENCE_MD5SUM FILE FOR PRIMARY KEY TABLE
 indicator = ''
 protein_dict = {}
 id_md5 = {}
 
-with open('efin_seq_md5sum.tsv', mode='w') as sm:
+with open(f'{path}seq_md5sum.tsv', mode='w') as sm:
     sm.write('md5sum\tsequence\n')
-
-    for row in csv_reader(EFIN_DOWNLOAD_PATH):
+    for row in csv_reader(args.path):
         x = row.split(',')
-        print(x)
         if x[1] == 'NA' or x[2] == 'NA':
             continue
         if x[0] == 'protein':
@@ -64,64 +68,56 @@ with open('efin_seq_md5sum.tsv', mode='w') as sm:
         id_md5[indicator] = md5sum
         sm.write(f'{md5sum}\t{sequence}\n')
 
-#DIVIDING DATA TO SWISSPROT AND HUMDIV
-with open('Efin_Swissprot.tsv', mode='w') as sw, open('Efin_Humdiv.tsv', mode='w') as hd:
-    hd.write('md5sum\trefAA\tPosition\taltAA\tScore\tPrediction\n')
-    sw.write('md5sum\trefAA\tPosition\taltAA\tScore\tPrediction\n')
-    for row in csv_reader(EFIN_PATH):
-        x = row.split(',')
-        if x[1] == 'NA' or x[2] == 'NA':
-            continue
-        if x[0] == 'protein':
-            continue
-        try:
-            sw.write(f'{id_md5[x[0]]}\t{x[2]}\t{x[1]}\t{x[3]}\t{x[4]}\t{x[5]}\n')
-            hd.write(f'{id_md5[x[0]]}\t{x[2]}\t{x[1]}\t{x[3]}\t{x[6]}\t{x[7]}\n')
-        except KeyError:
-            continue
 
+json_data = {}
+protein_md5sum = ''
+x = ''
 
-#MODIFYING SCORES TO JSON FORMAT
-PATH_SWISSPROT = "Efin_Swissprot.tsv"
-PATH_HUMDIV = "Efin_Humdiv.tsv"
+with open(f'{path}EfinSWISSPROT.tsv', mode='w') as f:
+    f.write('md5sum\tscores\n')
+    for row in csv_reader(args.path):
+        vals = row.split(',')
+        if vals[1] == 'NA' or vals[2] == 'NA':
+            continue
+        if vals[0] == 'protein':
+            continue
+        if vals[0] not in id_md5.keys():
+            continue
+        if protein_md5sum != '' and protein_md5sum != id_md5[vals[0]]:
+            f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
+            json_data = {}
+        if x == f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]][vals[3]] = float(vals[4])
+        elif x == '' or x != f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]] = {"ref": vals[2]}
+            json_data[vals[1]][vals[3]] = float(vals[4])
+        x = f'{id_md5[vals[0]]},{vals[1]}'
+        protein_md5sum = id_md5[vals[0]]
+    f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
 
 
 json_data = {}
 protein_md5sum = ''
 x = ''
 
-with open('EfinSWISSPROT.tsv', mode='w') as f:
+with open(f'{path}EfinHUMDIV.tsv', mode='w') as f:
     f.write('md5sum\tscores\n')
-    for row in csv_reader(PATH_SWISSPROT):
-        if row.startswith('md5sum'):
+    for row in csv_reader(args.path):
+        vals = row.split(',')
+        if vals[1] == 'NA' or vals[2] == 'NA':
             continue
-        vals = row.split('\t')
-        if protein_md5sum != '' and protein_md5sum != vals[0]:
+        if vals[0] == 'protein':
+            continue
+        if vals[0] not in id_md5.keys():
+            continue
+        if protein_md5sum != '' and protein_md5sum != id_md5[vals[0]]:
             f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
             json_data = {}
-        if x == f'{vals[0]},{vals[2]}':
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        elif x == '' or x != f'{vals[0]},{vals[2]}':
-            json_data[vals[2]] = {"ref": vals[1]}
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        x = f'{vals[0]},{vals[2]}'
-        protein_md5sum = vals[0]
-    f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
-
-with open('EfinHUMDIV.tsv', mode='w') as f:
-    f.write('md5sum\tscores\n')
-    for row in csv_reader(PATH_HUMDIV):
-        if row.startswith('md5sum'):
-            continue
-        vals = row.split('\t')
-        if protein_md5sum != '' and protein_md5sum != vals[0]:
-            f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
-            json_data = {}
-        if x == f'{vals[0]},{vals[2]}':
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        elif x == '' or x != f'{vals[0]},{vals[2]}':
-            json_data[vals[2]] = {"ref": vals[1]}
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        x = f'{vals[0]},{vals[2]}'
-        protein_md5sum = vals[0]
+        if x == f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]][vals[3]] = float(vals[6])
+        elif x == '' or x != f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]] = {"ref": vals[2]}
+            json_data[vals[1]][vals[3]] = float(vals[6])
+        x = f'{id_md5[vals[0]]},{vals[1]}'
+        protein_md5sum = id_md5[vals[0]]
     f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
