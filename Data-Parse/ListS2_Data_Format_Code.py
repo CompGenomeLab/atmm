@@ -1,10 +1,9 @@
 import hashlib
 import json
+import argparse
 
-LISTS2_PATH = "LIST-s2.tsv"
 
-
-def file_reader(file_name):
+def csv_reader(file_name):
     for row in open(file_name, "r"):
         yield row.split('\n')[0]
 
@@ -30,17 +29,27 @@ def get_sequence(dic) -> str:
     return seq
 
 
-#CREATING SEQUENCE_MD5SUM FILE FOR PRIMARY KEY TABLE
+parser = argparse.ArgumentParser(description='Format List-s2 tsv file, output gives 2 files namely: seq_md5sum.tsv, LIST-S2.tsv')
+parser.add_argument('--path', '-p', type=str, help='path where the tsv file is downloaded', required=True)
+parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created', required=True)
+args = parser.parse_args()
+
+if not args.outputpath.endswith('/'):
+    path = args.outputpath + '/'
+else:
+    path = args.outputpath
+
+
 indicator = ''
 protein_dict = {}
 id_md5 = {}
 
-with open('seq_md5sum.tsv', mode='w') as sm:
+with open(f'{path}seq_md5sum.tsv', mode='w') as sm:
     sm.write('md5sum\tsequence\n')
-
-    for row in file_reader(LISTS2_PATH):
+    for row in csv_reader(args.path):
         x = row.split('\t')
-        print(x)
+        if x[1] == 'NA' or x[2] == 'NA':
+            continue
         if x[0] == 'UniParc':
             continue
         if indicator != x[0] and indicator != '':
@@ -59,39 +68,29 @@ with open('seq_md5sum.tsv', mode='w') as sm:
         id_md5[indicator] = md5sum
         sm.write(f'{md5sum}\t{sequence}\n')
 
-#MERGING MD5SUM AND SCORES
-with open('List-s2.tsv', mode='w') as l:
-    l.write('md5sum\trefAA\tPosition\taltAA\tScore\tPrediction\n')
-    for row in file_reader(LISTS2_PATH):
-        x = row.split('\t')
-        if x[0] == 'protein':
-            continue
-        try:
-            l.write(f'{id_md5[x[0]]}\t{x[2]}\t{x[1]}\t{x[3]}\t{x[4]}\n')
-        except KeyError:
-            continue
-
-#MODIFYING SCORES TO JSON FORMAT
-PATH = "List-s2.tsv"
 
 json_data = {}
 protein_md5sum = ''
 x = ''
 
-with open('LIST-S2_FORMATTED.tsv', mode='w') as f:
+with open(f'{path}LIST-S2.tsv', mode='w') as f:
     f.write('md5sum\tscores\n')
-    for row in file_reader(PATH):
-        if row.startswith('md5sum'):
-            continue
+    for row in csv_reader(args.path):
         vals = row.split('\t')
-        if protein_md5sum != '' and protein_md5sum != vals[0]:
+        if vals[1] == 'NA' or vals[2] == 'NA':
+            continue
+        if vals[0] == 'protein':
+            continue
+        if vals[0] not in id_md5.keys():
+            continue
+        if protein_md5sum != '' and protein_md5sum != id_md5[vals[0]]:
             f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
             json_data = {}
-        if x == f'{vals[0]},{vals[2]}':
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        elif x == '' or x != f'{vals[0]},{vals[2]}':
-            json_data[vals[2]] = {"ref": vals[1]}
-            json_data[vals[2]][vals[3]] = float(vals[4])
-        x = f'{vals[0]},{vals[2]}'
-        protein_md5sum = vals[0]
+        if x == f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]][vals[3]] = float(vals[4])
+        elif x == '' or x != f'{id_md5[vals[0]]},{vals[1]}':
+            json_data[vals[1]] = {"ref": vals[2]}
+            json_data[vals[1]][vals[3]] = float(vals[4])
+        x = f'{id_md5[vals[0]]},{vals[1]}'
+        protein_md5sum = id_md5[vals[0]]
     f.write(f'{protein_md5sum}\t{json.dumps(json_data)}\n')
