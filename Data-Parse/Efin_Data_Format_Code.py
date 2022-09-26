@@ -30,8 +30,8 @@ def get_sequence(dic) -> str:
 
 
 parser = argparse.ArgumentParser(description='Format Efin csv file, output gives 3 files namely: seq_md5sum.tsv, EfinSWISSPROT.tsv, EfinHUMDIV.tsv')
-parser.add_argument('--path', '-p', type=str, help='path where the csv file is downloaded', required=True)
-parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created', required=True)
+parser.add_argument('--path', '-p', type=str, help='the csv file path. ex: /home/username/efin.csv', required=True)
+parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created. ex: /home/username/', required=True)
 args = parser.parse_args()
 
 if not args.outputpath.endswith('/'):
