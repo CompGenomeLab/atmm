@@ -15,10 +15,17 @@ tar -zxvf EFIN_0.1.download.csv.tar.gz
 ```
 Then, since two table are required for the database, the data was modified with ./Data-Parse/Efin_Data_Format_Code.py
 
-#### Efin threshold values:
-
-<p>for swissprot trained scores 0.6 (equal or higher than 0.6 → neutral, lower than 0.6 → damaging</p>
-<p>for humdiv trained scores 0.28 (equal or higher than 0.28 → damaging, lower than 0.28 → neutral</p>
+For the detailed explanation : 
+```
+python3 Efin_Data_Format_Code.py -h
+```
+Example:
+```
+python3 Efin_Data_Format_Code.py -p /home/username/efin.csv -op /home/username/
+```
+<p>This script generates 3 tsv files.</p>
+<p>seq_md5sum_efin.tsv for md5sum-sequence table</p>
+<p>EfinSWISSPROT.tsv and EfinHUMDIV.tsv for md5sum-score table</p>
 
 
 ### List-S2
@@ -37,10 +44,17 @@ cat LIST-S2_Human_UniParc_2019_10_part4 >> LIST-S2_Human_UniParc_2019_10.tsv.gz
 ```
 Then, since two table are required for the database, the data was modified with ./Data-Parse/ListS2_Data_Format_Code.py
 
-#### List-s2 threshold values:
-<p>Generic threshold: 0.85</p>
-<p>Equal to 0.85 or higher: deleterious</p>
-<p>lower than 0.85: benign</p>
+For the detailed explanation : 
+```
+python3 ListS2_Data_Format_Code.py -h
+```
+Example:
+```
+python3 ListS2_Data_Format_Code.py -p /home/username/lists2.tsv -op /home/username/
+```
+<p>This script generates 2 tsv files.</p>
+<p>seq_md5sum_lists2.tsv for md5sum-sequence table</p>
+<p>List-s2.tsv for md5sum-score table</p>
 
 
 ### SIFT4g
@@ -48,14 +62,26 @@ Then, since two table are required for the database, the data was modified with 
 The source code was downloaded from https://github.com/rvaser/sift4g on 13th August 2022. It is installed as written on github page.
 
 The query sequences downloaded from https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/uniref100.xml.gz (last modified:2022-08-03). Each protein's fasta file was saved separately to the input folder and MD5sum-sequence file was created with ./Data-Parse/Current_uniref100_Parse.py
+For the detailed explanation : 
+```
+python3 Current_uniref100_Parse.py -h
+```
+Example:
+```
+python3 Current_uniref100_Parse.py -p /home/username/uniref100.xml -op /home/username/
+```
+<p>This script generates:</p>
+<p>md5sum_seq_uniref100.tsv for md5sum-sequence table</p>
+<p>sift_input folder that consists of protein fasta files. Each protein is separated singly.</p>
 
 The database has been downloaded from https://www.uniprot.org/help/downloads (swissprot and trembl) || August 2022. 
 Swissprot and Swissprot/Trembl are used for calculations as a database parameter.
 
 ```
-for file in INPUT_FOLDER_PATH; do ./bin/sift4g -q $file -d DATABASE_PATH --outfmt light --out OUTPUT_FOLDER_PATH; done
-
+for file in SIFT_INPUT/FOLDER/PATH; do ./bin/sift4g -q $file -d DATABASE_PATH --outfmt light --out OUTPUT_FOLDER_PATH; done
+#output folder path should be separate and it should only contain *.SIFTprediction files.
 ```
+
 The code was executed with these parameters:
 
 gap opening penalty: 10
@@ -75,9 +101,15 @@ kmer-length: 5 (length of kmers used for database search)
 Since prediction files are separately for protein's fasta folder, each of them merged into a tsv file with ./Data-Parse/Sift4G_Data_Merge.py
 
 
-#### Sift-4g threshold values:
-<p>If the score is equal or lower than 0.05 -> damaging </p>
-<p>If the score is greater than 0.05 -> tolerated </p>
+For the detailed explanation : 
+```
+python3 Sift4G_Data_Merge.py -h
+```
+Example:
+```
+python3 Sift4G_Data_Merge.py -op /home/username/sift4g/output/ -p /home/username/sift4g/ -ip /home/username/sift4g/sift_input/ -db swissprot
+```
+<p>This script generates a tsv file for md5sum-score table.</p>
 
 
 
@@ -109,9 +141,12 @@ cat pph$N.log >>pph.log
 rm -f pph$N.features pph$N.log
 done
 ```
--d dumpdir (directory for auxiliary output files)
--s fasta file
-subs.input -> input file for all theoric amino acids changes
+```
+./run_pph4.sh -d /var/tmp/scratch -s ref_proteome.fasta subs.input > run_pph4.log 2>&1 &
+```
+<p>-d dumpdir (directory for auxiliary output files)</p>
+<p>-s fasta file</p>
+<p>subs.input -> input file for all theoric amino acids changes</p>
 
 ```
 #CREATING INPUT SUBSTITUTION FILE
@@ -134,17 +169,6 @@ with open('subs.input', mode='w') as b:
 ```
 
 
-```
-./run_pph4.sh -d /var/tmp/scratch -s ref_proteome.fasta subs.input > run_pph4.log 2>&1 &
-```
-
-
-#### Polyphen-2 threshold values:
-<p>0.0 to 0.15 -- Variants with scores in this range are predicted to be benign. </p>
-<p>0.15 to 1.0 -- Variants with scores in this range are possibly damaging.</p>
-<p>0.85 to 1.0 -- Variants with scores in this range are more confidently predicted to be damaging.</p>
-
-
 <p></p>
 <p></p>
 
@@ -155,14 +179,20 @@ with open('subs.input', mode='w') as b:
 <p>First you must log in to the psql command-line.</p>
 
 ```
-CREATE DATABASE protein_variants_db;
-\connect protein_variants_db;
-#md5sum - sequence dump
+CREATE DATABASE protein_variants_db;  
+\connect protein_variants_db;  
+
+/*md5sum - sequence dump*/ 
+/*All of the seq_md5sum.tsv files are merged -> cat (all seq_md5sum.tsv files) >> all_seq_md5sum.tsv*/
+/*After the main table is created, all_seq_md5sum.tsv are dumped to temp (temporary) table*/
+/*Since md5sum should be unique, they inserted into the main table with another command.*/ 
+
 CREATE TABLE seq_md5sum (
 	md5sum VARCHAR(128) UNIQUE NOT NULL,
 	sequence TEXT NOT NULL,
 	PRIMARY KEY(md5sum)
 );
+
 CREATE TABLE temp (
 	md5sum VARCHAR(128) NOT NULL,
 	sequence TEXT NOT NULL);
@@ -170,26 +200,28 @@ COPY temp FROM 'MD5SUM-SEQUENCE FILE PATH' USING DELIMITERS E'\t' WITH NULL AS '
 
 insert into seq_md5sum SELECT distinct * FROM temp ON CONFLICT (md5sum) DO nothing;
 
-drop table "temp";
+drop table "temp"; /*drop temporary table*/
 
-#dataset dump
+
+/*dataset dump; for each tool the commands should be repeated.*/
 
 CREATE TABLE {DATASET NAME} (md5sum VARCHAR(128) NOT NULL,
                             scores JSONb not null,
                             FOREIGN KEY (md5sum)
                               REFERENCES seq_md5sum (md5sum));
                               
-CREATE TABLE templ (
-                                md5sum VARCHAR(128) NOT NULL,
-                                scores JSONb not null;
+CREATE TABLE templ (md5sum VARCHAR(128) NOT NULL,
+                         scores JSONb not null);
                                 
 COPY templ FROM SCORE_PATH USING DELIMITERS E'\t' WITH NULL AS '\null' CSV header QUOTE E'\b' ESCAPE '\';    
 insert into {DATASET NAME} select distinct * from templ on conflict (md5sum) do nothing;
 
-drop table templ;
+drop table templ; /*drop temporary table*/
 
 ```
 Also ./SQL-script/Script.py can add tables to the database after it has been created with CREATE DATABASE command.
+
+For the detailed explanation : 
 ```
 python3 ./SQL-script/Script.py -h
 ```
@@ -198,6 +230,27 @@ python3 ./SQL-script/Script.py -h
 ## Sample database setup
 
 Inside the ./test_files there are sample files obtained from Efin and List-s2. The sample database can be built according to README file using them. 
+
+
+## How to interpret scores from each database
+#### Efin threshold values:
+
+<p>for swissprot trained scores 0.6 (equal or higher than 0.6 → neutral, lower than 0.6 → damaging</p>
+<p>for humdiv trained scores 0.28 (equal or higher than 0.28 → damaging, lower than 0.28 → neutral</p>
+
+#### List-s2 threshold values:
+<p>Generic threshold: 0.85</p>
+<p>Equal to 0.85 or higher: deleterious</p>
+<p>lower than 0.85: benign</p>
+
+#### Sift-4g threshold values:
+<p>If the score is equal or lower than 0.05 -> damaging </p>
+<p>If the score is greater than 0.05 -> tolerated </p>
+
+#### Polyphen-2 threshold values:
+<p>0.0 to 0.15 -- Variants with scores in this range are predicted to be benign. </p>
+<p>0.15 to 1.0 -- Variants with scores in this range are possibly damaging.</p>
+<p>0.85 to 1.0 -- Variants with scores in this range are more confidently predicted to be damaging.</p>
 
 
 ## References
