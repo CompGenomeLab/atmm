@@ -44,7 +44,7 @@ indicator = ''
 protein_dict = {}
 id_md5 = {}
 
-with open(f'{path}seq_md5sum.tsv', mode='w') as sm:
+with open(f'{path}seq_md5sum_efin.tsv', mode='w') as sm:
     sm.write('md5sum\tsequence\n')
     for row in csv_reader(args.path):
         x = row.split(',')
