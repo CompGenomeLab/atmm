@@ -30,8 +30,8 @@ def get_sequence(dic) -> str:
 
 
 parser = argparse.ArgumentParser(description='Format List-s2 tsv file, output gives 2 files namely: seq_md5sum.tsv, LIST-S2.tsv')
-parser.add_argument('--path', '-p', type=str, help='path where the tsv file is downloaded', required=True)
-parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created', required=True)
+parser.add_argument('--path', '-p', type=str, help='the tsv file path. ex: /home/username/lists2.tsv', required=True)
+parser.add_argument('--outputpath', '-op', type=str, help='path where the new files will be created. ex: /home/username/', required=True)
 args = parser.parse_args()
 
 if not args.outputpath.endswith('/'):
