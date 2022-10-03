@@ -3,9 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import declarative_base
 import json
+import argparse
 
 Base = declarative_base()
-
 
 # This is an example of a json credentials file, all information are required, and the order of the information is
 # important
@@ -23,6 +23,14 @@ Base = declarative_base()
 #
 #    }
 #    }
+
+parser = argparse.ArgumentParser(description="Database connection")
+parser.add_argument('--sshpath', '-sp', type=str, required=False)
+parser.add_argument('--dbpath', '-dp', type=str, required=True)
+parser.add_argument('--sshq', '-s', type=int, required=True)
+
+args = parser.parse_args()
+
 
 
 class SSHTunnel:
@@ -55,18 +63,19 @@ def _connect_server(local_bind_port, db_credentials):
 
 
 try:
-    use_sshtunnel = int(input("If you want to use sshtunnel please type '1' else '0'."))
+    use_sshtunnel = args.sshq
+
     if use_sshtunnel == 0 or use_sshtunnel == 1:
         print("Valid input.")
         if use_sshtunnel == 1:
-            ssh_credentials_file = input("Please enter ssh credentials file.")
-            db_credentials_file = input("Please enter db credentials file path.")
+            ssh_credentials_file =  args.sshpath
+            db_credentials_file = args.dbpath
             ssh_tunnel = SSHTunnel(_read_json_credentials(ssh_credentials_file))
             local_port = ssh_tunnel.ssh_tunnel_starter()
             session = Session(_connect_server(str(local_port),
                                               _read_json_credentials(db_credentials_file)))
         else:
-            db_credentials_file = input("Please enter db credentials file path.")
+            db_credentials_file = args.dbpath
             session = Session(_connect_server(5432, _read_json_credentials(db_credentials_file)))
 except ValueError:
     raise Exception("Invalid input.")
