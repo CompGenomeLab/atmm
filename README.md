@@ -15,7 +15,7 @@ tar -zxvf EFIN_0.1.download.csv.tar.gz
 ```
 Then, since two table are required for the database, the data was modified with ./Data-Parse/Efin_Data_Format_Code.py
 
-For the detailed explanation : 
+For the detailed explanation how to run the code with parameters: 
 ```
 python3 Efin_Data_Format_Code.py -h
 ```
@@ -44,7 +44,7 @@ cat LIST-S2_Human_UniParc_2019_10_part4 >> LIST-S2_Human_UniParc_2019_10.tsv.gz
 ```
 Then, since two table are required for the database, the data was modified with ./Data-Parse/ListS2_Data_Format_Code.py
 
-For the detailed explanation : 
+For the detailed explanation how to run the code with parameters: 
 ```
 python3 ListS2_Data_Format_Code.py -h
 ```
@@ -62,7 +62,7 @@ python3 ListS2_Data_Format_Code.py -p /home/username/lists2.tsv -op /home/userna
 The source code was downloaded from https://github.com/rvaser/sift4g on 13th August 2022. It is installed as written on github page.
 
 The query sequences downloaded from https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/uniref100.xml.gz (last modified:2022-08-03). Each protein's fasta file was saved separately to the input folder and MD5sum-sequence file was created with ./Data-Parse/Current_uniref100_Parse.py
-For the detailed explanation : 
+For the detailed explanation how to run the code with parameters: 
 ```
 python3 Current_uniref100_Parse.py -h
 ```
@@ -101,7 +101,7 @@ kmer-length: 5 (length of kmers used for database search)
 Since prediction files are separately for protein's fasta folder, each of them merged into a tsv file with ./Data-Parse/Sift4G_Data_Merge.py
 
 
-For the detailed explanation : 
+For the detailed explanation how to run the code with parameters : 
 ```
 python3 Sift4G_Data_Merge.py -h
 ```
@@ -166,6 +166,18 @@ with open('subs.input', mode='w') as b:
                     b.write(p_id + '\t' + f'{m + 1}' + '\t' + el[j] + '\t' + k + '\n')
                 m += 1
 
+```
+After run_pph.sh, run_weka.sh script is run with these commands separetely.
+
+```
+$PPH/bin/run_weka.pl $pph_output_file > /path/to/humdiv/output/file
+$PPH/bin/run_weka.pl -l $PPH/models/HumVar.UniRef100.NBd.f11.model $pph_output_file > /path/to/humvar/output/file
+```
+Finally, to edit the algoritm into the md5sum-json format use ./Data-Parse/Polyphen_Data_Merge.py
+
+For detailed explanation how to run the code with parameters:
+```
+python3 Polyphen_Data_Merge.py -h
 ```
 
 
