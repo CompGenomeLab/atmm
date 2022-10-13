@@ -217,7 +217,7 @@ drop table "temp"; /*drop temporary table*/
 
 /*dataset dump; for each tool the commands should be repeated.*/
 
-CREATE TABLE {DATASET NAME} (md5sum VARCHAR(128) NOT NULL,
+CREATE TABLE {DATASET NAME} (md5sum VARCHAR(128) UNIQUE NOT NULL,
                             scores JSONb not null,
                             FOREIGN KEY (md5sum)
                               REFERENCES seq_md5sum (md5sum));
