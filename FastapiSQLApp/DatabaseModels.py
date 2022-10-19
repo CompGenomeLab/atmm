@@ -38,6 +38,10 @@ class Efin(Base):
     md5sum = Column(String(255), ForeignKey("seq_md5sum.md5sum"), primary_key=True)
     scores = Column(JSON, nullable=False)
 
+class Polyphen(Base):
+    __tablename__ = 'Polyphen_humvar'
+    md5sum = Column(String(255), ForeignKey("seq_md5sum.md5sum"), primary_key=True)
+    scores = Column(JSON, nullable=False)   
 
 class UniprotMetaData(Base):
     __tablename__ = 'uniprot_data'
