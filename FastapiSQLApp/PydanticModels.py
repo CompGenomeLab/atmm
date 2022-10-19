@@ -27,6 +27,7 @@ class AllScores(BaseModel):
     Provean: Optional[dict]
     Lists2: Optional[dict]
     Efin: Optional[dict]
-
+    Polyphen: Optional[dict]
+        
     class Config:
         orm_mode = True
