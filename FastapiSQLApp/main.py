@@ -129,4 +129,4 @@ async def get_common_md5sum():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="10.65.7.247", port=8000, log_level="info")
+    uvicorn.run("main:app", host="10.3.2.13", port=8080, log_level="info")
