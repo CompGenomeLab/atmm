@@ -9,7 +9,7 @@ def hash_seq(s):
     return result.hexdigest()
 
 
-parser = argparse.ArgumentParser(description='Format sift4g output files, this code gives sift4g result file that is tsv format')
+parser = argparse.ArgumentParser(description='Format sift4g output files, this code gives sift4g result file that is tsv format and md5sum-sequence file for the primary key table')
 parser.add_argument('--outputpath', '-op', type=str, help='path to output files of sift4g algorithm. ex: /home/username/sift4g/output/ (it should finish with backslash)', required=True)
 parser.add_argument('--path', '-p', type=str, help='path where the new files will be created. ex: /home/username/sift4g/ (it should finish with backslash)', required=True)
 parser.add_argument('--inputpath', '-ip', type=str, help='path of the folder in which input files are present at. They can be created with ./Current_uniref100_Parse.py ex: /home/username/sift4g/input/ (it should finish with backslash)', required=True)
@@ -28,8 +28,9 @@ for path in os.listdir(dir_path):
         files.append(path)
 
 
-with open(f'{args.path}sift4gDATA_{args.databasetype}.tsv', mode='w') as k:
+with open(f'{args.path}sift4gDATA_{args.databasetype}.tsv', mode='w') as k, open(f'{args.path}seq_md5sum_sift4g_{args.databasetype}.tsv', mode='w') as seqmd:
     k.write('md5sum\tscore\n')
+    seqmd.write('md5sum\tsequence\n')
     for f in files:
         with open(dir_path + f) as m:
             score = m.read().splitlines()
@@ -62,3 +63,5 @@ with open(f'{args.path}sift4gDATA_{args.databasetype}.tsv', mode='w') as k:
                 m += 1
 
         k.write(f'{hash_seq(sequence)}\t{json.dumps(json_data)}\n')
+        seqmd.write(f'{hash_seq(sequence)}\t{sequence}\n')
+        
