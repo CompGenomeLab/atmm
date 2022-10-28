@@ -68,12 +68,25 @@ class Database:
 
 
 parser = argparse.ArgumentParser(description='Add tsv sequence-score file to the sql database')
-parser.add_argument('--filepath', '-fp', type=str, help='full path of the expected tsv file with two columns: sequence and score', required=True)
+
 parser.add_argument('--username', '-u', type=str, help='postgresql username', required=True)
 parser.add_argument('--password', '-p', type=str, help='postgresql password', required=True)
 parser.add_argument('--dbname', '-db', type=str, help='name of the database to be altered', required=True)
-parser.add_argument('--operation', '-op', type=str, help='Type U if you want to update an existing table in the database (on conflict -md5sum- do nothing), type UF if you want to force update (on conflict -md5sum- update the scores with the new one) or A if you want to add a new table.', required=True)
-parser.add_argument('--tablename', '-n', type=str, help='exact name of the dataset you want to add/update', required=True)
+
+
+parser.add_argument('--filepath', '-fp', type=str,
+                    help='full path of the expected tsv file with two columns: sequence and score (json format)',
+                    required=True)
+parser.add_argument('--header', '-he', type=str,
+                    help='if header exists in the first line input file, add -he to the command', action='store_true')
+
+
+parser.add_argument('--operation', '-op', type=str,
+                    help='Type U if you want to update an existing table in the database (on conflict -md5sum- do nothing), type UF if you want to force update (on conflict -md5sum- update the scores with the new one) or A if you want to add a new table.',
+                    required=True)
+parser.add_argument('--tablename', '-n', type=str, help='exact name of the dataset you want to add/update',
+                    required=True)
+
 args = parser.parse_args()
 
 db = Database(username=args.username, password=args.password, database=args.dbname)
@@ -81,8 +94,10 @@ db = Database(username=args.username, password=args.password, database=args.dbna
 with open('sequence_md5sum.tsv', mode='w') as f, open('score_md5sum.tsv', mode='w') as m:
     f.write('md5sum\tsequence\n')
     m.write('md5sum\tscores\n')
+    ct = 0
     for row in file_reader(args.filepath):
-        if row.startswith('sequence'):
+        if args.header and ct == 0:
+            ct += 1
             continue
         sp = row.split('\t')
         f.write(f'{hash_seq(sp[0])}\t{sp[0]}\n')
