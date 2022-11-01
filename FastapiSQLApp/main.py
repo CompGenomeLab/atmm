@@ -9,10 +9,18 @@ from starlette.responses import RedirectResponse
 from DatabaseConnection import session
 from DatabaseModels import Sift, Efin, Provean, Lists2, Md5sum, Polyphen
 from PydanticModels import ScoreTables, Md5sumSeq, AllScores
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 db = session
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 async def md5sum_parameter(md5sum: str, q: int | None = None) -> dict:
     exists = db.query(Md5sum.md5sum).filter_by(md5sum=md5sum).first() is not None
