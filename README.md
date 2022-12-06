@@ -248,7 +248,7 @@ Inside the ./test_files there are sample files obtained from Efin and List-s2. T
 #### Efin threshold values:
 
 <p>for swissprot trained scores 0.6 (equal or higher than 0.6 → neutral, lower than 0.6 → damaging</p>
-<p>for humdiv trained scores 0.28 (equal or higher than 0.28 → damaging, lower than 0.28 → neutral</p>
+<p>for humdiv trained scores 0.28 (equal or higher than 0.28 → neutral, lower than 0.28 → damaging</p>
 
 #### List-s2 threshold values:
 <p>Generic threshold: 0.85</p>
