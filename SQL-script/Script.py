@@ -77,7 +77,7 @@ parser.add_argument('--dbname', '-db', type=str, help='name of the database to b
 parser.add_argument('--filepath', '-fp', type=str,
                     help='full path of the expected tsv file with two columns: sequence and score (json format)',
                     required=True)
-parser.add_argument('--header', '-he', type=str,
+parser.add_argument('--header', '-he',
                     help='if header exists in the first line input file, add -he to the command', action='store_true')
 
 
@@ -122,7 +122,7 @@ if args.operation.lower() == 'a':
         db.query(drop_table)
         create_temp_data_table = f'''CREATE TABLE templ (
                                 md5sum VARCHAR(128) NOT NULL,
-                                scores JSONb not null; '''
+                                scores JSONb not null); '''
         db.query(create_temp_data_table)
         create_data_table = f'''CREATE TABLE {args.tablename} (
                                 md5sum VARCHAR(128) UNIQUE NOT NULL,
