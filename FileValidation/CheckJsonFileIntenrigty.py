@@ -1,6 +1,6 @@
 import json
 import os
-
+import argparse
 import hashlib
 
 
@@ -15,12 +15,11 @@ class CheckScoreJsonFile:
 
     def check_each_file_write_new(self):
         for file in self.files_to_check:
-            file_name = "cheched_" + file.split("/")[-1]
+            file_name = "checked_" + file.split("/")[-1]
             md5sum_file = "md5sum_" + file.split("/")[-1]
             with open(os.path.join(self.input_dir, file), "r") as input_file, open(
                     os.path.join(self.output_dir, file_name),
-                    "w") as out_file, open(
-                os.path.join(self.output_dir, md5sum_file), "w") as output_md5sum_file:
+                    "w") as out_file, open(os.path.join(self.output_dir, md5sum_file), "w") as output_md5sum_file:
                 for line in input_file:
                     ensembl_protein_id, score = line.split("\t")
                     score = score.replace("'", "\"")
@@ -35,7 +34,8 @@ class CheckScoreJsonFile:
                         output_md5sum_file.write(
                             f"{protein_entry.md5sum}\t{protein_entry.ensembl_protein_id}\t{protein_entry.sequence}\n")
 
-    def get_protein_seq_for_ensembl_protein_id(self, ensembl_protein_id):
+    @staticmethod
+    def get_protein_seq_for_ensembl_protein_id(ensembl_protein_id):
         with open(ensembl_protein_id, 'r') as file:
             content = file.read()
 
@@ -52,7 +52,6 @@ class CheckScoreJsonFile:
 class ProteinScore:
 
     def __init__(self, ensembl_protein_id, sequence, score_json):
-
         self.ensembl_protein_id = ensembl_protein_id
         self.sequence = sequence
         self.score_json = score_json
@@ -67,12 +66,21 @@ class ProteinScore:
 
     @property
     def check_scores(self):
-        all_empty = all(not bool(self.score_json['scores'][key]) for key in self.score_json['scores'])
-        if all_empty:
-            return True
+        all_empty = all(not bool(scores) for scores in self.score_json['scores'].values())
+        return not all_empty
 
-        for _, sub_dict in self.score_json.items():
-            for val in sub_dict.values():
-                if not (isinstance(val, (int, float)) or val == ''):
-                    return True
-        return False
+
+def main():
+    parser = argparse.ArgumentParser(description="Check Score JSON Files")
+    parser.add_argument("-i", "--input-dir", required=True, help="Input directory containing JSON files")
+    parser.add_argument("-o", "--output-dir", required=True, help="Output directory to save checked files")
+    parser.add_argument("-e", "--ensembl-protein-fasta", required=True, help="Ensembl protein FASTA file")
+
+    args = parser.parse_args()
+
+    check_score_json = CheckScoreJsonFile(args.input_dir, args.output_dir, args.ensembl_protein_fasta)
+    check_score_json.check_each_file_write_new()
+
+
+if __name__ == "__main__":
+    main()
