@@ -1,36 +1,27 @@
+import argparse
+import json
 from sshtunnel import SSHTunnelForwarder
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import declarative_base
-import json
-import argparse
 
 Base = declarative_base()
 
-# This is an example of a json credentials file, all information are required, and the order of the information is
-# important
-#	{"ssh_credentials":{
-#        "ipaddress": "xxx",
-#        "SSH port": 22,
-#        "User_name": "xxx",
-#        "password": "xxx"
-#    }}
-# database_credentials":{
-#        "port": 5432,
-#        "database_name": "xxx",
-#        "database_user": "xxx",
-#        "database_password": "xxx"
-#
-#    }
-#    }
 
-parser = argparse.ArgumentParser(description="Database connection")
-parser.add_argument('--sshpath', '-sp', type=str, required=False)
-parser.add_argument('--dbpath', '-dp', type=str, required=True)
-parser.add_argument('--sshq', '-s', type=int, required=True)
+def parse_arguments():
+    parser = argparse.ArgumentParser(description="Database connection")
+    parser.add_argument('--sshpath', '-sp', type=str, required=False)
+    parser.add_argument('--dbpath', '-dp', type=str, required=True)
+    parser.add_argument('--sshtunnel', '-s', type=bool, required=True)
 
-args = parser.parse_args()
+    return parser.parse_args()
 
+
+def _read_json_credentials(json_path):
+    with open(json_path, "r") as f:
+        credentials = json.loads(f.read())
+        print(credentials)
+    return credentials
 
 
 class SSHTunnel:
@@ -48,13 +39,6 @@ class SSHTunnel:
         self.server.stop()
 
 
-def _read_json_credentials(json_path):
-    with open(json_path, "r") as f:
-        credentials = json.loads(f.read())
-        print(credentials)
-    return credentials
-
-
 def _connect_server(local_bind_port, db_credentials):
     engine = create_engine(
         f'postgresql://{db_credentials["database_user"]}:{db_credentials["database_password"]}@{"localhost"}:{local_bind_port}/{db_credentials["database_name"]}'
@@ -62,20 +46,19 @@ def _connect_server(local_bind_port, db_credentials):
     return engine
 
 
-try:
-    use_sshtunnel = args.sshq
+if __name__ == '__main__':
+    args = parse_arguments()
+    use_sshtunnel = args.sshtunnel
 
-    if use_sshtunnel == 0 or use_sshtunnel == 1:
-        print("Valid input.")
-        if use_sshtunnel == 1:
-            ssh_credentials_file =  args.sshpath
-            db_credentials_file = args.dbpath
-            ssh_tunnel = SSHTunnel(_read_json_credentials(ssh_credentials_file))
-            local_port = ssh_tunnel.ssh_tunnel_starter()
-            session = Session(_connect_server(str(local_port),
-                                              _read_json_credentials(db_credentials_file)))
-        else:
-            db_credentials_file = args.dbpath
-            session = Session(_connect_server(5432, _read_json_credentials(db_credentials_file)))
-except ValueError:
-    raise Exception("Invalid input.")
+    if use_sshtunnel is True:
+        ssh_credentials_file = args.sshpath
+        db_credentials_file = args.dbpath
+        ssh_tunnel = SSHTunnel(_read_json_credentials(ssh_credentials_file))
+        local_port = ssh_tunnel.ssh_tunnel_starter()
+        session = Session(_connect_server(str(local_port),
+                                          _read_json_credentials(db_credentials_file)))
+    else:
+        db_credentials_file = args.dbpath
+        session = Session(_connect_server(5432, _read_json_credentials(db_credentials_file)))
+
+    db = Database(session)
