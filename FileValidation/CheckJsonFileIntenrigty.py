@@ -16,7 +16,7 @@ class CheckScoreJsonFile:
     def check_each_file_write_new(self):
         for file in self.files_to_check:
             file_name = "checked_" + file.split("/")[-1]
-            md5sum_file = "md5sum_" + file.split("/")[-1]
+            md5sum_file = "md5sum_ensembl_proteinid" + file.split("/")[-1]
             with open(os.path.join(self.input_dir, file), "r") as input_file, open(
                     os.path.join(self.output_dir, file_name),
                     "w") as out_file, open(os.path.join(self.output_dir, md5sum_file), "w") as output_md5sum_file:
@@ -27,12 +27,11 @@ class CheckScoreJsonFile:
                     if ensembl_protein_id not in self.fasta_dict:
                         continue
                     protein_entry = ProteinScore(ensembl_protein_id, self.fasta_dict[ensembl_protein_id], score_json)
-                    if protein_entry.protein_len_in_score_json != len(self.fasta_dict[ensembl_protein_id]):
-                        continue
                     if protein_entry.valid:
-                        out_file.write(f"{protein_entry.md5sum}\t{protein_entry.score_json}\n")
+                        out_file.write(f"{protein_entry.sequence}\t{protein_entry.score_json}\n")
                         output_md5sum_file.write(
-                            f"{protein_entry.md5sum}\t{protein_entry.ensembl_protein_id}\t{protein_entry.sequence}\n")
+                            f"{protein_entry.ensembl_protein_id}\t{protein_entry.sequence}\n")
+            os.remove(os.path.join(self.input_dir, file))
 
     @staticmethod
     def get_protein_seq_for_ensembl_protein_id(ensembl_protein_id):

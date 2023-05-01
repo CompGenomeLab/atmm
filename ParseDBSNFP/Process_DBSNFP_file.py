@@ -2,6 +2,8 @@ import csv
 import os
 import tempfile
 import shutil
+import argparse
+from FileValidation.CheckJsonFileIntenrigty import CheckScoreJsonFile
 
 class ParseDBSNFP:
     columns = ['aaref', 'aaalt', 'aapos', 'Ensembl_proteinid', 'SIFT_score', 'SIFT4G_score', 'Polyphen2_HDIV_score',
@@ -31,6 +33,7 @@ class ParseDBSNFP:
         for to_json_file in files_to_jsons:
             self.process_json_files(to_json_file)
         shutil.rmtree(self.tempdir)
+
     def process_raw_file(self, index, title):
         with open(self.dbsnfp_file_path, 'r') as dbsnfp:
             tsvreader = csv.reader(dbsnfp, delimiter='\t')
@@ -88,3 +91,25 @@ class ParseDBSNFP:
         with open(os.path.join(self.workdir, file.split('/')[-1].split('.')[0] + '.json'), 'w') as f:
             for key in data.keys():
                 f.write(f"{key}\t{data[key]}\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Process DBSNFP data and generate JSON files.')
+    parser.add_argument('-w', '--workdir', required=True, help='The working directory to store output JSON files.')
+    parser.add_argument('-d', '--dbsnfp', required=True, help='The path to the DBSNFP file.')
+    parser.add_argument("-e", "--ensembl-protein-fasta", required=True, help="Ensembl protein FASTA file of dbsnfp")
+
+    args = parser.parse_args()
+
+    workdir = args.workdir
+    dbsnfp_file_path = args.dbsnfp
+
+    parse_dbsnfp = ParseDBSNFP(workdir, dbsnfp_file_path)
+    parse_dbsnfp.process()
+
+    check_score_json = CheckScoreJsonFile(args.workdir, args.workdir, args.ensembl_protein_fasta)
+    check_score_json.check_each_file_write_new()
+
+
+if __name__ == "__main__":
+    main()

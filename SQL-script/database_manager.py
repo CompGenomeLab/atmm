@@ -1,15 +1,19 @@
 from database import Database
 from utils import hash_seq, file_reader
 import os
+import json
 
 
 class SequenceDatabaseManager:
     def __init__(self, db, args):
         self.db = db
         self.args = args
+        self.working_dir = os.path.dirname(self.args.filepath)
+        self.md5sum_sequence_file_path = os.path.join(self.working_dir, 'sequence_md5sum.tsv')
+        self.md5sum_score_json_file_path = os.path.join(self.working_dir, 'md5sum_score_json.tsv')
 
     def _prepare_files(self):
-        with open('sequence_md5sum.tsv', mode='w') as f, open('md5sum_score_json.tsv', mode='w') as m:
+        with open(self.md5sum_sequence_file_path, mode='w') as f, open(self.md5sum_score_json_file_path, mode='w') as m:
             f.write('md5sum\tsequence\n')
             m.write('md5sum\tscores\n')
             ct = 0
@@ -18,8 +22,9 @@ class SequenceDatabaseManager:
                     ct += 1
                     continue
                 sp = row.split('\t')
+                score_json = json.loads(sp[1])
                 f.write(f'{hash_seq(sp[0])}\t{sp[0]}\n')
-                m.write(f'{hash_seq(sp[0])}\t{sp[1]}\n')
+                print(hash_seq(sp[0]), json.dumps(score_json), sep="\t", file=m)
 
     def _create_temp_table(self, columns):
         create_temp_table = f'''CREATE TABLE temp ({columns});'''
@@ -38,7 +43,7 @@ class AddTable(SequenceDatabaseManager):
         self._prepare_files()
         self.create_main_table()
         self._update_md5sum_table()
-        self.db.copy_from_file('md5sum_score_json.tsv', self.args.table_name, header=True)
+        self.db.copy_from_file_json(self.md5sum_score_json_file_path, self.args.table_name)
 
     def create_main_table(self):
         create_main_table = f'''CREATE TABLE {self.args.table_name} (
@@ -49,7 +54,7 @@ class AddTable(SequenceDatabaseManager):
 
     def _update_md5sum_table(self):
         self._create_temp_table('md5sum TEXT NOT NULL, sequence TEXT NOT NULL')
-        self.db.copy_from_file('sequence_md5sum.tsv', 'temp', header=True)
+        self.db.copy_from_file(self.md5sum_sequence_file_path, 'temp')
         insert_query = '''insert into seq_md5sum select distinct * from temp on conflict (md5sum) do nothing;'''
         self.db.execute_query(insert_query)
         self._drop_temp_table()
@@ -68,14 +73,14 @@ class UpdateTable(SequenceDatabaseManager):
 
     def _update_md5sum_table(self):
         self._create_temp_table('md5sum TEXT NOT NULL, sequence TEXT NOT NULL')
-        self.db.copy_from_file('sequence_md5sum.tsv', 'temp', header=True)
+        self.db.copy_from_file(self.md5sum_sequence_file_path, 'temp')
         insert_query = '''insert into seq_md5sum select distinct * from temp on conflict (md5sum) do nothing;'''
         self.db.execute_query(insert_query)
         self._drop_temp_table()
 
     def _update_data_table(self, force_update=False):
         self._create_temp_table('md5sum TEXT NOT NULL, scores JSONb not null')
-        self.db.copy_from_file('score_md5sum.tsv', 'temp', header=True)
+        self.db.copy_from_file(self.md5sum_score_json_file_path, 'temp')
 
         if force_update:
             insert_data = f'''insert into {self.args.table_name}(

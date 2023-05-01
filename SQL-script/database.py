@@ -1,4 +1,7 @@
 from sqlalchemy.orm import sessionmaker
+import json
+from sqlalchemy.sql import text
+
 
 class Database:
     def __init__(self, engine):
@@ -22,16 +25,44 @@ class Database:
         except Exception as error:
             print("Error while executing query:", error)
 
-    def copy_from_file(self, file_path, table_name, header=True, delimiter='\t', null='\\N'):
+    def copy_from_file(self, file_path, table_name):
+        try:
+            sql_copy = rf'''COPY {table_name} FROM '{file_path}' USING DELIMITERS E'\t' WITH NULL AS '\null' CSV HEADER;'''
+            self.session.execute(sql_copy)
+
+            print(f"Data from {file_path} has been copied to {table_name} table.")
+        except Exception as e:
+            print(f"Error encountered while copying data from {file_path} to {table_name} table:")
+            print(str(e))
+            if hasattr(e, 'diag'):
+                print(f"Problematic line: {file_path}:{e.diag.row_number}: {e.diag.column_name}")
+            else:
+                print("Cannot determine the problematic line.")
+
+    def copy_from_file_json(self, file_path, table_name, header=True, delimiter='\t', null='\\N'):
         with open(file_path, 'r') as file:
             # Skip the header line if the header is set to True
             if header:
                 next(file)
 
-            sql_copy = f"COPY {table_name} FROM {file_path} WITH (FORMAT CSV, DELIMITER '{delimiter}', NULL '{null}')"
-            self.session.execute(sql_copy)
+            # Iterate through each line of the file
+            for line in file:
+                columns = line.strip().split(delimiter)
+                md5sum = columns[0]
+                json_data = columns[1]
 
-        print(f"Data from {file_path} has been copied to {table_name} table.")
+                # Parse the JSON data using Python's json module
+                parsed_json = json.loads(json_data)
+
+                # Convert the dictionary back into a JSON-formatted string
+                json_string = json.dumps(parsed_json)
+
+                # Insert the row into the PostgreSQL table
+                insert_query = text(f"INSERT INTO {table_name} (md5sum, scores) VALUES (:md5sum, :scores)")
+                self.session.execute(insert_query, {"md5sum": md5sum, "scores": json_string})
+                self.session.commit()
+
+            print(f"Data from {file_path} has been copied to {table_name} table.")
 
     def close(self):
         self.session.close()

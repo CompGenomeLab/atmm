@@ -3,7 +3,7 @@ from database import Database
 from utils import read_json_credentials
 import argparse
 import os
-from database_manager import SequenceDatabaseManager, ForceUpdateTable, UpdateTable, AddTable
+from database_manager import  ForceUpdateTable, UpdateTable, AddTable
 
 
 def parse_arguments():
@@ -43,8 +43,10 @@ if __name__ == '__main__':
             manager.execute()
         else:
             print('Typo error: --operation should be only A, U, or UF')
-
-    os.remove('sequence_md5sum.tsv')
-    os.remove('md5sum_score_json.tsv')
+    working_dir = os.path.dirname(args.filepath)
+    md5sum_sequence_file_path = os.path.join(working_dir, 'sequence_md5sum.tsv')
+    md5sum_score_json_file_path = os.path.join(working_dir, 'md5sum_score_json.tsv')
+#    os.remove(md5sum_score_json_file_path)
+#    os.remove(md5sum_sequence_file_path)
 
 
