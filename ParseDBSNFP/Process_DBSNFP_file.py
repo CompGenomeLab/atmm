@@ -4,6 +4,8 @@ import tempfile
 import shutil
 import argparse
 from FileValidation.CheckJsonFileIntenrigty import CheckScoreJsonFile
+from concurrent.futures import ProcessPoolExecutor
+
 
 class ParseDBSNFP:
     columns = ['aaref', 'aaalt', 'aapos', 'Ensembl_proteinid', 'SIFT_score', 'SIFT4G_score', 'Polyphen2_HDIV_score',
@@ -15,23 +17,31 @@ class ParseDBSNFP:
                'GenoCanyon_score', 'LINSIGHT']
 
     def __init__(self, workdir: str, dbsnfp_file_path: str):
-
+        self.output = tempfile.mkdtemp(dir=workdir)
         self.workdir = workdir
         self.dbsnfp_file_path = dbsnfp_file_path
         self.tempdir = tempfile.mkdtemp(dir=workdir)
 
     def process(self):
+        max_workers = os.cpu_count()
+        print("Processing raw files...")
         for index, title in enumerate(self.columns[4:]):
             if title == "MutationTaster_score":
                 continue
             else:
                 self.process_raw_file(index, title)
         file_paths = [os.path.join(self.tempdir, f) for f in os.listdir(self.tempdir) if f.endswith('.tsv')]
-        for tsv_file in file_paths:
-            self.process_tsv_lines(tsv_file)
+
+        print("Processing TSV lines...")
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            executor.map(self.process_tsv_lines, file_paths)
+
         files_to_jsons = [os.path.join(self.tempdir, f) for f in os.listdir(self.tempdir) if f.startswith('processed_')]
-        for to_json_file in files_to_jsons:
-            self.process_json_files(to_json_file)
+
+        print("Processing JSON files...")
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            executor.map(self.process_json_files, files_to_jsons)
+
         shutil.rmtree(self.tempdir)
 
     def process_raw_file(self, index, title):
@@ -88,9 +98,9 @@ class ParseDBSNFP:
                 else:
                     continue
 
-        with open(os.path.join(self.workdir, file.split('/')[-1].split('.')[0] + '.json'), 'w') as f:
-            for key in data.keys():
-                f.write(f"{key}\t{data[key]}\n")
+        with open(os.path.join(self.output, file.split('/')[-1].split('.')[0] + '.json'), 'w') as f:
+            for key, value in data.items():
+                f.write(f"{key}\t{value}\n")
 
 
 def main():
@@ -98,17 +108,23 @@ def main():
     parser.add_argument('-w', '--workdir', required=True, help='The working directory to store output JSON files.')
     parser.add_argument('-d', '--dbsnfp', required=True, help='The path to the DBSNFP file.')
     parser.add_argument("-e", "--ensembl-protein-fasta", required=True, help="Ensembl protein FASTA file of dbsnfp")
-
+    parser.add_argument("-o", "--output-directory", required=True, help="Output directory of dbsnfp scores")
     args = parser.parse_args()
 
-    workdir = args.workdir
+    print("Creating temporary working directory...")
+    temp_workdir = tempfile.mkdtemp(dir=args.workdir)
     dbsnfp_file_path = args.dbsnfp
+    output_directory = args.output_directory
 
-    parse_dbsnfp = ParseDBSNFP(workdir, dbsnfp_file_path)
+    print("Parsing DBSNFP file...")
+    parse_dbsnfp = ParseDBSNFP(temp_workdir, dbsnfp_file_path)
     parse_dbsnfp.process()
-
-    check_score_json = CheckScoreJsonFile(args.workdir, args.workdir, args.ensembl_protein_fasta)
+    parse_dbsnfp_output = parse_dbsnfp.output
+    print("Checking and writing new JSON files...")
+    check_score_json = CheckScoreJsonFile(parse_dbsnfp_output, output_directory, args.ensembl_protein_fasta)
     check_score_json.check_each_file_write_new()
+    print("Cleaning up temporary working directory...")
+    shutil.rmtree(temp_workdir)
 
 
 if __name__ == "__main__":
