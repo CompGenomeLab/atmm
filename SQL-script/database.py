@@ -45,11 +45,21 @@ class Database:
             if header:
                 next(file)
 
-            # Iterate through each line of the file
+            # Keep track of the md5sum values that have already been seen
+            md5sums = set()
+
+            # Iterate through each line of the file and insert the data into the main table
             for line in file:
                 columns = line.strip().split(delimiter)
                 md5sum = columns[0]
                 json_data = columns[1]
+
+                # Skip rows with duplicate md5sum values
+                if md5sum in md5sums:
+                    print(f"Skipping row with duplicate md5sum value: {md5sum}")
+                    continue
+                else:
+                    md5sums.add(md5sum)
 
                 # Parse the JSON data using Python's json module
                 parsed_json = json.loads(json_data)
@@ -57,10 +67,12 @@ class Database:
                 # Convert the dictionary back into a JSON-formatted string
                 json_string = json.dumps(parsed_json)
 
-                # Insert the row into the PostgreSQL table
-                insert_query = text(f"INSERT INTO {table_name} (md5sum, scores) VALUES (:md5sum, :scores)")
+                # Insert the row into the main table, ignoring duplicates
+                insert_query = text(
+                    f"INSERT INTO {table_name} (md5sum, scores) VALUES (:md5sum, :scores) ON CONFLICT DO NOTHING")
                 self.session.execute(insert_query, {"md5sum": md5sum, "scores": json_string})
-                self.session.commit()
+
+            self.session.commit()
 
             print(f"Data from {file_path} has been copied to {table_name} table.")
 

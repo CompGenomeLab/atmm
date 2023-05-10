@@ -16,10 +16,8 @@ class CheckScoreJsonFile:
     def check_each_file_write_new(self):
         for file in self.files_to_check:
             file_name = "checked_" + file.split("/")[-1]
-            md5sum_file = "md5sum_ensembl_proteinid" + file.split("/")[-1]
             with open(os.path.join(self.input_dir, file), "r") as input_file, open(
-                    os.path.join(self.output_dir, file_name),
-                    "w") as out_file, open(os.path.join(self.output_dir, md5sum_file), "w") as output_md5sum_file:
+                    os.path.join(self.output_dir, file_name),"w") as out_file:
                 for line in input_file:
                     ensembl_protein_id, score = line.split("\t")
                     score = score.replace("'", "\"")
@@ -28,9 +26,7 @@ class CheckScoreJsonFile:
                         continue
                     protein_entry = ProteinScore(ensembl_protein_id, self.fasta_dict[ensembl_protein_id], score_json)
                     if protein_entry.valid:
-                        out_file.write(f"{protein_entry.sequence}\t{protein_entry.score_json}\n")
-                        output_md5sum_file.write(
-                            f"{protein_entry.ensembl_protein_id}\t{protein_entry.sequence}\n")
+                        out_file.write(f"{protein_entry.sequence}\t{json.dumps(protein_entry.score_json)}\n")
             os.remove(os.path.join(self.input_dir, file))
 
     @staticmethod

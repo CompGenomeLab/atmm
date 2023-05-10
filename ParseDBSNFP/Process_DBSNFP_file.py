@@ -25,11 +25,16 @@ class ParseDBSNFP:
     def process(self):
         max_workers = os.cpu_count()
         print("Processing raw files...")
-        for index, title in enumerate(self.columns[4:]):
-            if title == "MutationTaster_score":
-                continue
-            else:
-                self.process_raw_file(index, title)
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            tasks = []
+            for index, title in enumerate(self.columns[4:]):
+                if title == "MutationTaster_score":
+                    continue
+                else:
+                    task = executor.submit(self.process_raw_file, index, title)
+                    tasks.append(task)
+            for task in tasks:
+                task.result()
         file_paths = [os.path.join(self.tempdir, f) for f in os.listdir(self.tempdir) if f.endswith('.tsv')]
 
         print("Processing TSV lines...")
@@ -42,21 +47,26 @@ class ParseDBSNFP:
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             executor.map(self.process_json_files, files_to_jsons)
 
-        shutil.rmtree(self.tempdir)
 
     def process_raw_file(self, index, title):
         with open(self.dbsnfp_file_path, 'r') as dbsnfp:
             tsvreader = csv.reader(dbsnfp, delimiter='\t')
             with open(os.path.join(self.tempdir, f"{title}.tsv"), 'w') as new_file:
+                print(f"Raw file processing for {title}")
                 for line in tsvreader:
                     if line[0] == '.' or line[1] == '.':
                         continue
                     else:
-                        new_file.write(f"{line[0]}\t{line[1]}\t{line[2]}\t{line[3]}\t{line[index + 4]}\n")
+                        try:
+                            new_file.write(f"{line[0]}\t{line[1]}\t{line[2]}\t{line[3]}\t{line[index + 4]}\n")
+                        except IndexError:
+                            print(f"IndexError: index={index}, title={title}, line_length={len(line)}")
+                            continue
             dbsnfp.seek(0)
 
     def process_tsv_lines(self, file_path):
         new_file_path = os.path.join(self.tempdir, f"processed_{os.path.basename(file_path)}")
+        print(f"Processing lines in the {os.path.basename(file_path)}")
         with open(file_path, 'r', newline='') as input_file, open(new_file_path, 'w', newline='') as output_file:
             tsv_reader = csv.reader(input_file, delimiter='\t')
             tsv_writer = csv.writer(output_file, delimiter='\t')
@@ -72,7 +82,7 @@ class ParseDBSNFP:
         data = {}
         with open(file_path, 'r') as f:
             reader = csv.DictReader(f, delimiter='\t')
-            print(file_path)
+            print(f"Processing json files for {os.path.basename(file_path)}")
             for row in reader:
                 protein_id = row['Ensembl_proteinid']
                 aa_pos = row['aapos']

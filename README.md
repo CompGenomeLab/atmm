@@ -1,4 +1,4 @@
-# atmm
+ atmm
 
 The database consists of two main tables.
 - Md5sum (unique, primary key) - Sequence

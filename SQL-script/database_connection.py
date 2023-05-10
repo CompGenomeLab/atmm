@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 class DatabaseConnector:
     def __init__(self, creds):
         self.creds = creds
-        self.ssh_tunnel = None
         self.engine = None
 
     def connect(self):
@@ -28,5 +27,3 @@ class DatabaseConnector:
     def close(self):
         if self.engine:
             self.engine.dispose()
-        if self.ssh_tunnel:
-            self.ssh_tunnel.stop()

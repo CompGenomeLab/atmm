@@ -22,7 +22,7 @@ class SequenceDatabaseManager:
                     ct += 1
                     continue
                 sp = row.split('\t')
-                score_json = json.loads(sp[1])
+                score_json = json.loads(sp[1].replace("'", "\""))
                 f.write(f'{hash_seq(sp[0])}\t{sp[0]}\n')
                 print(hash_seq(sp[0]), json.dumps(score_json), sep="\t", file=m)
 
