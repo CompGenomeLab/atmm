@@ -4,7 +4,7 @@ from pydantic.error_wrappers import ValidationError
 from pydantic.main import BaseModel
 from pydantic.parse import Protocol
 from pydantic.types import StrBytes
-from typing import Any, Optional, Type
+from typing import Any, Optional, Type, Dict, List
 
 
 class BaseModelNoException(BaseModel):
@@ -25,7 +25,7 @@ class BaseModelNoException(BaseModel):
             return None
 
     @classmethod
-    def parse_obj(cls: Type['BaseModelNoException'], obj: Any) -> Any | None:
+    def parse_obj(cls: Type['BaseModelNoException'], obj: Any) -> Any:
         try:
             return super(BaseModelNoException, cls).parse_obj(obj)
         except ValidationError as pve:
@@ -35,7 +35,7 @@ class BaseModelNoException(BaseModel):
 
     @classmethod
     def parse_raw(cls: Type['BaseModelNoException'], b: StrBytes, *, content_type: str = None, encoding: str = 'utf8',
-                  proto: Protocol = None, allow_pickle: bool = False, ) -> Any | None:
+                  proto: Protocol = None, allow_pickle: bool = False, ) -> Any:
         try:
             return super(BaseModelNoException, cls).parse_raw(b=b, content_type=content_type, encoding=encoding,
                                                               proto=proto, allow_pickle=allow_pickle)
@@ -55,17 +55,55 @@ class Md5sumSeq(BaseModelNoException):
 
 class AllScores(BaseModelNoException):
     md5sum: str
-    pph_humdiv: Optional[dict]
-    pph_humvar: Optional[dict]
-    sift4g_sp_trembl: Optional[dict]
-    sift4g_swissprot: Optional[dict]
-    lists2: Optional[dict]
-    efin_humdiv: Optional[dict]
-    efin_swissprot: Optional[dict]
-    provean: Optional[dict]
-    uniprot_metadata: Optional[list]
-    phact: Optional[dict]
-    phactboost: Optional[dict]
+    pph_humdiv: Optional[Dict]
+    pph_humvar: Optional[Dict]
+    sift4g_sp_trembl: Optional[Dict]
+    sift4g_swissprot: Optional[Dict]
+    lists2: Optional[Dict]
+    efin_humdiv: Optional[Dict]
+    efin_swissprot: Optional[Dict]
+    provean: Optional[Dict]
+    uniprot_metadata: Optional[List]
+    phact: Optional[Dict]
+    phactboost: Optional[Dict]
+
+    class Config:
+        orm_mode = True
+
+
+class DbsnfpAllScores(BaseModel):
+    md5sum: str
+    sift: Optional[Dict]
+    sift4g: Optional[Dict]
+    polyphen2_hdiv: Optional[Dict]
+    polyphen2_hvar: Optional[Dict]
+    lrt: Optional[Dict]
+    mutationassessor: Optional[Dict]
+    fathmm: Optional[Dict]
+    dbsnfp_provean: Optional[Dict]
+    vest4: Optional[Dict]
+    metasvm: Optional[Dict]
+    metalr: Optional[Dict]
+    metarnn: Optional[Dict]
+    m_cap: Optional[Dict]
+    revel: Optional[Dict]
+    mutpred: Optional[Dict]
+    mvp: Optional[Dict]
+    mpc: Optional[Dict]
+    primateai: Optional[Dict]
+    deogen2: Optional[Dict]
+    bayesdel_addaf_score: Optional[Dict]
+    bayesdel_noaf_score: Optional[Dict]
+    clinpred: Optional[Dict]
+    lists2: Optional[Dict]
+    cadd: Optional[Dict]
+    cadd_hg19: Optional[Dict]
+    dann: Optional[Dict]
+    fathmm_mkl_coding: Optional[Dict]
+    fathmm_xf_coding: Optional[Dict]
+    eigen_raw_coding: Optional[Dict]
+    genocanyon: Optional[Dict]
+    linsight: Optional[Dict]
 
     class Config:
         orm_mode = True
@@ -73,17 +111,56 @@ class AllScores(BaseModelNoException):
 
 class CommonScores(BaseModelNoException):
     md5sum: str
-    pph_humdiv: dict
-    pph_humvar: dict
-    sift4g_sp_trembl: dict
-    sift4g_swissprot: dict
-    lists2: dict
-    efin_humdiv: dict
-    efin_swissprot: dict
-    provean: dict
-    phact: dict
-    phactboost: dict
+    pph_humdiv: Dict
+    pph_humvar: Dict
+    sift4g_sp_trembl: Dict
+    sift4g_swissprot: Dict
+    lists2: Dict
+    efin_humdiv: Dict
+    efin_swissprot: Dict
+    provean: Dict
+    phact: Dict
+    phactboost: Dict
     uniprot_metadata: Optional[list]
+
+    class Config:
+        orm_mode = True
+
+
+class DbsnfpCommonScores(BaseModel):
+    md5sum: str
+    sift: Optional[Dict]
+    sift4g: Optional[Dict]
+    polyphen2_hdiv: Optional[Dict]
+    polyphen2_hvar: Optional[Dict]
+    lrt: Optional[Dict]
+    mutationassessor: Optional[Dict]
+    fathmm: Optional[Dict]
+    dbsnfp_provean: Optional[Dict]
+    vest4: Optional[Dict]
+    metasvm: Optional[Dict]
+    metalr: Optional[Dict]
+    metarnn: Optional[Dict]
+    m_cap: Optional[Dict]
+    revel: Optional[Dict]
+    mutpred: Optional[Dict]
+    mvp: Optional[Dict]
+    mpc: Optional[Dict]
+    primateai: Optional[Dict]
+    deogen2: Optional[Dict]
+    bayesdel_addaf_score: Optional[Dict]
+    bayesdel_noaf_score: Optional[Dict]
+    clinpred: Optional[Dict]
+    lists2: Optional[Dict]
+    cadd: Optional[Dict]
+    cadd_hg19: Optional[Dict]
+    dann: Optional[Dict]
+    fathmm_mkl_coding: Optional[Dict]
+    fathmm_xf_coding: Optional[Dict]
+    eigen_raw_coding: Optional[Dict]
+    genocanyon: Optional[Dict]
+    linsight: Optional[Dict]
+    uniprot_metadata: Optional[List[Dict]]
 
     class Config:
         orm_mode = True

@@ -1,19 +1,12 @@
 import argparse
 import json
-from sshtunnel import SSHTunnelForwarder
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Database connection")
-    parser.add_argument('--sshpath', '-sp', type=str, required=False)
     parser.add_argument('--dbpath', '-dp', type=str, required=True)
-    parser.add_argument('--sshtunnel', '-s', type=bool, required=True)
-
     return parser.parse_args()
 
 
@@ -24,41 +17,37 @@ def _read_json_credentials(json_path):
     return credentials
 
 
-class SSHTunnel:
-    def __init__(self, ssh_credentials):
-        self.server = SSHTunnelForwarder((ssh_credentials['ipaddress'], int(ssh_credentials['SSH port'])),
-                                         ssh_username=ssh_credentials["User_name"],
-                                         ssh_password=ssh_credentials["password"],
-                                         remote_bind_address=('localhost', 5432))
+class DatabaseConnector:
+    def __init__(self, db_credentials):
+        self.creds = db_credentials
+        self.engine = None
 
-    def ssh_tunnel_starter(self):
-        self.server.start()
-        return self.server.local_bind_port
+    def connect(self):
+        try:
+            self.engine = create_engine(
+                f'postgresql://{self.creds["PG_UN"]}:{self.creds["PG_DB_PW"]}@{self.creds["LOCALHOST"]}:{5432}/{self.creds["PG_DB_NAME"]}')
+        except Exception as e:
+            print(f'Connection Has Failed: {str(e)}')
+            return None
+        print("Connection Successful")
+        return self.engine
 
-    def ssh_tunnel_stop(self):
-        self.server.stop()
+    def __enter__(self):
+        self.connect()
+        return self
 
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
 
-def _connect_server(local_bind_port, db_credentials):
-    engine = create_engine(
-        f'postgresql://{db_credentials["database_user"]}:{db_credentials["database_password"]}@{"localhost"}:{local_bind_port}/{db_credentials["database_name"]}'
-    )
-    return engine
+    def close(self):
+        if self.engine:
+            self.engine.dispose()
 
+# Parse the arguments
+args = parse_arguments()
+db_credentials_file = args.dbpath
 
-if __name__ == '__main__':
-    args = parse_arguments()
-    use_sshtunnel = args.sshtunnel
-
-    if use_sshtunnel is True:
-        ssh_credentials_file = args.sshpath
-        db_credentials_file = args.dbpath
-        ssh_tunnel = SSHTunnel(_read_json_credentials(ssh_credentials_file))
-        local_port = ssh_tunnel.ssh_tunnel_starter()
-        session = Session(_connect_server(str(local_port),
-                                          _read_json_credentials(db_credentials_file)))
-    else:
-        db_credentials_file = args.dbpath
-        session = Session(_connect_server(5432, _read_json_credentials(db_credentials_file)))
-
-    db = Database(session)
+# Connect to the database and create a session
+db_connector = DatabaseConnector(_read_json_credentials(db_credentials_file))
+engine = db_connector.connect()
+session = Session(engine)
