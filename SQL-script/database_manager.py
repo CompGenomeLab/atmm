@@ -22,11 +22,16 @@ class SequenceDatabaseManager:
                     ct += 1
                     continue
                 sp = row.split('\t')
-                score_json = json.loads(sp[1].replace("'", "\""))
+                try:
+                    score_json = json.loads(sp[1])
+                except json.decoder.JSONDecodeError:
+                    raise (ValueError, f'Invalid JSON in line {ct}')
+
                 f.write(f'{hash_seq(sp[0])}\t{sp[0]}\n')
                 print(hash_seq(sp[0]), json.dumps(score_json), sep="\t", file=m)
 
     def _create_temp_table(self, columns):
+        columns = ', '.join([f'"{col}"' for col in columns.split(', ')])
         create_temp_table = f'''CREATE TABLE temp ({columns});'''
         self.db.execute_query(create_temp_table)
 
@@ -40,7 +45,6 @@ class AddTable(SequenceDatabaseManager):
         self._prepare_files()
         if self.args.table_name in self.db.get_tables():
             raise Database.TableAlreadyExists
-        self._prepare_files()
         self.create_main_table()
         self._update_md5sum_table()
         self.db.copy_from_file_json(self.md5sum_score_json_file_path, self.args.table_name)
@@ -62,12 +66,12 @@ class AddTable(SequenceDatabaseManager):
 
 class UpdateTable(SequenceDatabaseManager):
     def execute(self, force_update=False):
+        self._prepare_files()
         if self.args.table_name not in self.db.currently_existing_tables():
             os.remove('sequence_md5sum.tsv')
             os.remove('score_md5sum.tsv')
             raise Database.TableNotFound
         else:
-            self._prepare_files()
             self._update_md5sum_table()
             self._update_data_table(force_update)
 
@@ -97,5 +101,5 @@ class UpdateTable(SequenceDatabaseManager):
 
 
 class ForceUpdateTable(UpdateTable):
-    def execute(self):
+    def execute(self, force_update=False):
         super().execute(force_update=True)
