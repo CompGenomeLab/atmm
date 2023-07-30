@@ -5,6 +5,7 @@ import shutil
 import argparse
 from FileValidation.CheckJsonFileIntenrigty import CheckScoreJsonFile
 from concurrent.futures import ProcessPoolExecutor
+import json
 
 
 class ParseDBSNFP:
@@ -47,7 +48,6 @@ class ParseDBSNFP:
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             executor.map(self.process_json_files, files_to_jsons)
 
-
     def process_raw_file(self, index, title):
         with open(self.dbsnfp_file_path, 'r') as dbsnfp:
             tsvreader = csv.reader(dbsnfp, delimiter='\t')
@@ -83,6 +83,7 @@ class ParseDBSNFP:
         with open(file_path, 'r') as f:
             reader = csv.DictReader(f, delimiter='\t')
             print(f"Processing json files for {os.path.basename(file_path)}")
+            row: dict
             for row in reader:
                 protein_id = row['Ensembl_proteinid']
                 aa_pos = row['aapos']
@@ -110,7 +111,8 @@ class ParseDBSNFP:
 
         with open(os.path.join(self.output, file.split('/')[-1].split('.')[0] + '.json'), 'w') as f:
             for key, value in data.items():
-                f.write(f"{key}\t{value}\n")
+                json_value = json.dumps(value)  # Converts the dictionary to a JSON string
+                f.write(f"{key}\t{json_value}\n")
 
 
 def main():
